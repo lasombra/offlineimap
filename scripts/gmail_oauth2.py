@@ -24,6 +24,8 @@
 # A love for the command line!
 
 import os
+import httplib2
+import json
 from oauth2client.file import Storage
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.tools import run
@@ -33,16 +35,17 @@ class GmailOauth2:
 	client_id = '1053103103160-udpnkreqpfk09kblb7pfhaahopcq93oq.apps.googleusercontent.com'
 	client_secret = 'PHjktEMD7BST57Y6R3YAQN57'
 
-	configFolder = "~/tmp/"
+	config_folder = "~/tmp"
+	config_file = "offlineimap_oauth"
 	authHttp = None
 
 	def _GoogleAuth(self):
 	    if not self.authHttp:
-	        if self.configFolder:
-	            storage = Storage(os.path.expanduser("%s/oauth" %
-	                                                 self.configFolder))
+	        if self.config_folder:
+	            storage = Storage(os.path.expanduser("{0}/{1}".format(
+	                                                 unicode(self.config_folder), unicode(self.config_file))))
 	        else:
-	            storage = Storage(os.path.expanduser('~/offlineimap_oauth'))
+	            storage = Storage(os.path.expanduser('~/%s' % self.config_file))
 	        
 	        credentials = storage.get()
 
@@ -59,7 +62,14 @@ class GmailOauth2:
 
 	    return self.authHttp
 
+	def read_access_token(self):
+		oauth_credential_file = open(os.path.expanduser("{0}/{1}".format(unicode(self.config_folder), self.config_file)))
+		os.remove(os.path.expanduser("{0}/{1}".format(unicode(self.config_folder), self.config_file)))
+		json_credential = json.load(oauth_credential_file)
+		return json_credential['token_response']['access_token']
+
+
 if __name__ == '__main__':
 	gmail = GmailOauth2()
 	gmail._GoogleAuth()
-	print gmail
+	print gmail.read_access_token()
